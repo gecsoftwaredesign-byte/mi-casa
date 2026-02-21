@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mi Casa al Día</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --cream: #FDF6EC;
+  --warm: #F0E4D0;
+  --orange: #E8722A;
+  --orange-dark: #C45A18;
+  --green: #4A9B6F;
+  --blue: #3A7CB8;
+  --red: #D94F4F;
+  --yellow: #E8A82A;
+  --text: #2C1A0E;
+  --text-soft: #7A5A3A;
+  --white: #FFFFFF;
+  --shadow: 0 3px 16px rgba(44,26,14,0.10);
+  --radius: 18px;
+  --radius-sm: 12px;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#1A0E05; display:flex; justify-content:center; align-items:center; min-height:100vh; font-family:'Nunito',sans-serif; padding:20px; }
+.phone { width:390px; height:800px; background:var(--cream); border-radius:48px; overflow:hidden; position:relative; box-shadow:0 30px 80px rgba(0,0,0,0.6),inset 0 0 0 2px rgba(255,255,255,0.08); }
+.phone-notch { position:absolute; top:0; left:50%; transform:translateX(-50%); width:110px; height:26px; background:#1A0E05; border-radius:0 0 18px 18px; z-index:100; }
+
+/* SCREENS */
+.screen { position:absolute; inset:0; display:flex; flex-direction:column; background:var(--cream); visibility:hidden; opacity:0; pointer-events:none; z-index:0; overflow:hidden; }
+.screen.active { visibility:visible; opacity:1; pointer-events:all; z-index:10; }
+
+/* WELCOME */
+#screen-welcome { background:linear-gradient(150deg,var(--orange) 0%,var(--orange-dark) 100%) !important; align-items:center; justify-content:center; padding:40px 28px; }
+#screen-welcome .logo { font-size:70px; margin-bottom:16px; }
+#screen-welcome h1 { font-size:32px; font-weight:900; color:white; text-align:center; margin-bottom:10px; }
+#screen-welcome p { font-size:17px; color:rgba(255,255,255,0.85); text-align:center; font-weight:600; line-height:1.5; margin-bottom:44px; }
+.btn-white { width:100%; padding:17px; background:white; color:var(--orange); border:none; border-radius:50px; font-family:'Nunito',sans-serif; font-size:19px; font-weight:900; cursor:pointer; margin-bottom:12px; transition:transform .15s; }
+.btn-white:active { transform:scale(.97); }
+.btn-white-outline { width:100%; padding:15px; background:transparent; color:white; border:2px solid rgba(255,255,255,.6); border-radius:50px; font-family:'Nunito',sans-serif; font-size:17px; font-weight:700; cursor:pointer; }
+
+/* STATUS BAR */
+.status-bar { padding:34px 22px 6px; display:flex; justify-content:space-between; font-size:12px; font-weight:700; color:var(--text-soft); flex-shrink:0; }
+
+/* HEADER */
+.header { padding:4px 22px 12px; flex-shrink:0; }
+.header h1 { font-size:26px; font-weight:900; color:var(--text); line-height:1.1; display:flex; align-items:center; }
+.header p { font-size:15px; color:var(--text-soft); font-weight:600; margin-top:3px; }
+.back-btn { font-size:22px; cursor:pointer; margin-right:8px; }
+
+/* SCROLL */
+.scroll-content { flex:1; overflow-y:auto; overflow-x:hidden; padding:0 18px 100px; scrollbar-width:none; }
+.scroll-content::-webkit-scrollbar { display:none; }
+
+/* BOTTOM NAV */
+.bottom-nav { position:absolute; bottom:0; left:0; right:0; height:84px; background:white; border-top:1.5px solid var(--warm); display:flex; align-items:flex-start; padding-top:8px; z-index:50; }
+.nav-item { flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; cursor:pointer; padding:4px; }
+.nav-icon { width:42px; height:42px; background:var(--warm); border-radius:13px; display:flex; align-items:center; justify-content:center; font-size:19px; transition:all .2s; }
+.nav-item.active .nav-icon { background:var(--orange); }
+.nav-label { font-size:10px; font-weight:700; color:var(--text-soft); }
+.nav-item.active .nav-label { color:var(--orange); font-weight:900; }
+
+/* CARDS */
+.card { background:white; border-radius:var(--radius); padding:16px; margin-bottom:12px; box-shadow:var(--shadow); }
+.section-title { font-size:17px; font-weight:800; color:var(--text); margin:16px 0 10px; display:flex; align-items:center; gap:8px; }
+
+/* GREETING CARD */
+.greeting-card { background:linear-gradient(135deg,var(--orange),var(--orange-dark)); border-radius:var(--radius); padding:20px; margin-bottom:18px; color:white; position:relative; overflow:hidden; }
+.greeting-card::before { content:'🏠'; position:absolute; right:16px; top:50%; transform:translateY(-50%); font-size:52px; opacity:.25; }
+.greeting-card h2 { font-size:20px; font-weight:900; margin-bottom:4px; }
+.greeting-card p { font-size:14px; opacity:.9; font-weight:600; }
+
+/* CAT GRID */
+.cat-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:18px; }
+.cat-card { background:white; border-radius:var(--radius); padding:18px 14px; display:flex; flex-direction:column; align-items:center; gap:8px; cursor:pointer; box-shadow:var(--shadow); transition:transform .15s; }
+.cat-card:active { transform:scale(.96); }
+.cat-card .cat-icon { font-size:34px; }
+.cat-card h3 { font-size:14px; font-weight:800; color:var(--text); text-align:center; }
+.cat-card .cat-count { font-size:12px; color:var(--text-soft); font-weight:600; }
+
+/* LIST ITEM */
+.list-item { background:white; border-radius:var(--radius-sm); padding:13px; margin-bottom:9px; box-shadow:var(--shadow); display:flex; align-items:center; gap:11px; }
+.item-icon { width:44px; height:44px; border-radius:13px; display:flex; align-items:center; justify-content:center; font-size:21px; flex-shrink:0; }
+.item-info { flex:1; min-width:0; }
+.item-info h3 { font-size:14px; font-weight:800; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.item-info p { font-size:12px; color:var(--text-soft); font-weight:600; margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.item-actions { display:flex; gap:5px; flex-shrink:0; }
+.action-btn { width:34px; height:34px; border:none; border-radius:10px; font-size:15px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:transform .15s; }
+.action-btn:active { transform:scale(.88); }
+.edit-btn { background:#EEF4FB; }
+.del-btn { background:#FAEAEA; }
+.call-btn-sm { background:#EAF5EF; }
+
+/* STATUS */
+.status-pill { font-size:10px; font-weight:800; padding:3px 8px; border-radius:20px; white-space:nowrap; flex-shrink:0; }
+.ok { background:#EAF5EF; color:var(--green); }
+.warn { background:#FEF5E7; color:var(--yellow); }
+.bad { background:#FAEAEA; color:var(--red); }
+
+/* BUTTONS */
+.btn-big { width:100%; padding:15px; border:none; border-radius:var(--radius); font-family:'Nunito',sans-serif; font-size:16px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:10px; transition:transform .15s; }
+.btn-big:active { transform:scale(.97); }
+.btn-orange { background:var(--orange); color:white; box-shadow:0 4px 14px rgba(232,114,42,.35); }
+.btn-red { background:var(--red); color:white; }
+.btn-outline { background:white; color:var(--orange); border:2px solid var(--orange); }
+.btn-gray { background:var(--warm); color:var(--text); border:none; }
+
+/* MODAL */
+.modal-overlay { position:absolute; inset:0; background:rgba(26,14,5,.92); backdrop-filter:blur(5px); z-index:200; display:none; align-items:flex-end; }
+.modal-overlay.open { display:flex; }
+.modal { background:var(--cream); border-radius:28px 28px 0 0; padding:22px 20px 38px; width:100%; animation:slideUp .28s ease; max-height:92%; overflow-y:auto; }
+.modal::-webkit-scrollbar { display:none; }
+@keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
+.modal-handle { width:38px; height:4px; background:var(--warm); border-radius:2px; margin:0 auto 16px; }
+.modal h2 { font-size:19px; font-weight:900; color:var(--text); margin-bottom:16px; text-align:center; }
+
+/* FORM */
+.form-group { margin-bottom:13px; }
+.form-label { font-size:12px; font-weight:800; color:var(--text-soft); margin-bottom:5px; display:block; text-transform:uppercase; letter-spacing:.5px; }
+.form-input { width:100%; padding:12px 13px; border:2px solid var(--warm); border-radius:var(--radius-sm); font-family:'Nunito',sans-serif; font-size:15px; font-weight:600; color:var(--text); background:white; outline:none; transition:border-color .2s; }
+.form-input:focus { border-color:var(--orange); }
+
+/* EMPTY STATE */
+.empty-state { text-align:center; padding:30px 0; color:var(--text-soft); }
+.empty-state .ei { font-size:42px; margin-bottom:10px; }
+.empty-state p { font-size:15px; font-weight:700; }
+.empty-state small { font-size:12px; font-weight:600; margin-top:4px; display:block; }
+
+/* SOS FAB */
+#sos-fab { position:absolute; bottom:96px; right:14px; width:54px; height:54px; background:var(--red); border-radius:50%; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 18px rgba(217,79,79,.55); cursor:pointer; z-index:60; animation:pulseRed 2s infinite; }
+@keyframes pulseRed { 0%,100%{box-shadow:0 4px 18px rgba(217,79,79,.55),0 0 0 0 rgba(217,79,79,.3)} 50%{box-shadow:0 4px 18px rgba(217,79,79,.55),0 0 0 10px rgba(217,79,79,0)} }
+
+/* SOS */
+#screen-sos { background:#FFF0F0 !important; }
+.sos-header { background:var(--red); padding:36px 20px 20px; text-align:center; flex-shrink:0; }
+.sos-big-btn { width:164px; height:164px; background:radial-gradient(circle,#ff6b6b,var(--red)); border-radius:50%; margin:0 auto; display:flex; flex-direction:column; align-items:center; justify-content:center; box-shadow:0 8px 36px rgba(217,79,79,.5),0 0 0 14px rgba(217,79,79,.12); cursor:pointer; animation:pulseBig 1.8s infinite; }
+@keyframes pulseBig { 0%,100%{transform:scale(1)} 50%{transform:scale(1.04)} }
+.call-box { background:var(--green); border-radius:var(--radius); padding:24px 18px; color:white; text-align:center; margin-bottom:14px; }
+
+/* TOAST */
+.toast { position:absolute; bottom:96px; left:18px; right:18px; background:var(--text); color:white; padding:12px 16px; border-radius:14px; font-size:14px; font-weight:700; text-align:center; z-index:300; opacity:0; transform:translateY(18px); transition:all .28s; pointer-events:none; }
+.toast.show { opacity:1; transform:translateY(0); }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.2} }
+</style>
+</head>
+<body>
+<div class="phone">
+<div class="phone-notch"></div>
+
+<!-- WELCOME -->
+<div id="screen-welcome" class="screen active">
+  <div class="logo">🏠</div>
+  <h1>Mi Casa al Día</h1>
+  <p>Todo lo que necesitás para organizar tu hogar, en un solo lugar</p>
+  <button class="btn-white" onclick="goTo('screen-home')">✨ Comenzar</button>
+  <button class="btn-white-outline" onclick="goTo('screen-home')">Ya tengo cuenta</button>
+</div>
+
+<!-- HOME -->
+<div id="screen-home" class="screen">
+  <div class="status-bar"><span id="home-time">9:41</span><span>📶 🔋</span></div>
+  <div class="header"><h1>Buenos días, María 👋</h1><p id="home-date">Sábado, 21 de febrero</p></div>
+  <div class="scroll-content">
+    <div class="greeting-card"><h2 id="home-urgent">Cargando...</h2><p>Revisá tus recordatorios importantes</p></div>
+    <div class="section-title">🔔 Próximos vencimientos</div>
+    <div id="home-preview"></div>
+    <div class="section-title">⚡ Acceso rápido</div>
+    <div class="cat-grid">
+      <div class="cat-card" onclick="goTo('screen-reminders')"><div class="cat-icon">🔔</div><h3>Recordatorios</h3><div class="cat-count" id="cnt-r">0</div></div>
+      <div class="cat-card" onclick="goTo('screen-inventory')"><div class="cat-icon">📦</div><h3>Inventario</h3><div class="cat-count" id="cnt-i">0</div></div>
+      <div class="cat-card" onclick="goTo('screen-providers')"><div class="cat-icon">📞</div><h3>Proveedores</h3><div class="cat-count" id="cnt-p">0</div></div>
+      <div class="cat-card" onclick="goTo('screen-family')"><div class="cat-icon">👨‍👩‍👧</div><h3>Familia</h3><div class="cat-count" id="cnt-f">0</div></div>
+    </div>
+  </div>
+  <div id="sos-fab" onclick="openSOS()"><span style="font-size:20px">🆘</span></div>
+  <div class="bottom-nav">
+    <div class="nav-item active" onclick="goTo('screen-home')"><div class="nav-icon">🏠</div><div class="nav-label">Inicio</div></div>
+    <div class="nav-item" onclick="goTo('screen-reminders')"><div class="nav-icon">🔔</div><div class="nav-label">Recordar</div></div>
+    <div class="nav-item" onclick="goTo('screen-inventory')"><div class="nav-icon">📦</div><div class="nav-label">Inventario</div></div>
+    <div class="nav-item" onclick="goTo('screen-family')"><div class="nav-icon">👨‍👩‍👧</div><div class="nav-label">Familia</div></div>
+  </div>
+</div>
+
+<!-- REMINDERS -->
+<div id="screen-reminders" class="screen">
+  <div class="status-bar"><span>9:41</span><span>📶 🔋</span></div>
+  <div class="header"><h1><span class="back-btn" onclick="goTo('screen-home')">←</span>Recordatorios</h1><p>Todo lo que no querés olvidar</p></div>
+  <div class="scroll-content">
+    <button class="btn-big btn-orange" onclick="openReminderModal()">＋ Nuevo recordatorio</button>
+    <div id="reminders-list"></div>
+  </div>
+  <div id="sos-fab" onclick="openSOS()"><span style="font-size:20px">🆘</span></div>
+  <div class="bottom-nav">
+    <div class="nav-item" onclick="goTo('screen-home')"><div class="nav-icon">🏠</div><div class="nav-label">Inicio</div></div>
+    <div class="nav-item active" onclick="goTo('screen-reminders')"><div class="nav-icon">🔔</div><div class="nav-label">Recordar</div></div>
+    <div class="nav-item" onclick="goTo('screen-inventory')"><div class="nav-icon">📦</div><div class="nav-label">Inventario</div></div>
+    <div class="nav-item" onclick="goTo('screen-family')"><div class="nav-icon">👨‍👩‍👧</div><div class="nav-label">Familia</div></div>
+  </div>
+</div>
+
+<!-- INVENTORY -->
+<div id="screen-inventory" class="screen">
+  <div class="status-bar"><span>9:41</span><span>📶 🔋</span></div>
+  <div class="header"><h1><span class="back-btn" onclick="goTo('screen-home')">←</span>Inventario</h1><p>Lo que tenés en casa</p></div>
+  <div class="scroll-content">
+    <button class="btn-big btn-orange" onclick="openInventoryModal()">＋ Agregar ítem</button>
+    <div id="inventory-list"></div>
+  </div>
+  <div id="sos-fab" onclick="openSOS()"><span style="font-size:20px">🆘</span></div>
+  <div class="bottom-nav">
+    <div class="nav-item" onclick="goTo('screen-home')"><div class="nav-icon">🏠</div><div class="nav-label">Inicio</div></div>
+    <div class="nav-item" onclick="goTo('screen-reminders')"><div class="nav-icon">🔔</div><div class="nav-label">Recordar</div></div>
+    <div class="nav-item active" onclick="goTo('screen-inventory')"><div class="nav-icon">📦</div><div class="nav-label">Inventario</div></div>
+    <div class="nav-item" onclick="goTo('screen-family')"><div class="nav-icon">👨‍👩‍👧</div><div class="nav-label">Familia</div></div>
+  </div>
+</div>
+
+<!-- PROVIDERS -->
+<div id="screen-providers" class="screen">
+  <div class="status-bar"><span>9:41</span><span>📶 🔋</span></div>
+  <div class="header"><h1><span class="back-btn" onclick="goTo('screen-family')">←</span>Proveedores</h1><p>Contactos de confianza del hogar</p></div>
+  <div class="scroll-content">
+    <button class="btn-big btn-orange" onclick="openProviderModal()">＋ Nuevo proveedor</button>
+    <div id="providers-list"></div>
+  </div>
+  <div id="sos-fab" onclick="openSOS()"><span style="font-size:20px">🆘</span></div>
+  <div class="bottom-nav">
+    <div class="nav-item" onclick="goTo('screen-home')"><div class="nav-icon">🏠</div><div class="nav-label">Inicio</div></div>
+    <div class="nav-item" onclick="goTo('screen-reminders')"><div class="nav-icon">🔔</div><div class="nav-label">Recordar</div></div>
+    <div class="nav-item" onclick="goTo('screen-inventory')"><div class="nav-icon">📦</div><div class="nav-label">Inventario</div></div>
+    <div class="nav-item active" onclick="goTo('screen-family')"><div class="nav-icon">👨‍👩‍👧</div><div class="nav-label">Familia</div></div>
+  </div>
+</div>
+
+<!-- FAMILY -->
+<div id="screen-family" class="screen">
+  <div class="status-bar"><span>9:41</span><span>📶 🔋</span></div>
+  <div class="header"><h1><span class="back-btn" onclick="goTo('screen-home')">←</span>Mi Familia</h1><p>Conectados y al tanto de todo</p></div>
+  <div class="scroll-content">
+    <div style="background:linear-gradient(135deg,var(--green),#2D7A54);border-radius:var(--radius);padding:16px;margin-bottom:14px;color:white;">
+      <div style="font-size:15px;font-weight:900;margin-bottom:3px;">👁 ¿Qué pueden ver?</div>
+      <div style="font-size:12px;opacity:.9;font-weight:600;line-height:1.5;">Tu familia puede ver tus recordatorios. Vos controlás todo.</div>
+    </div>
+    <button class="btn-big btn-orange" onclick="openFamilyModal()">＋ Agregar familiar</button>
+    <div id="family-list"></div>
+    <div class="section-title">📞 Proveedores</div>
+    <button class="btn-big btn-outline" onclick="goTo('screen-providers')" style="margin-bottom:0;">Ver todos los proveedores →</button>
+  </div>
+  <div id="sos-fab" onclick="openSOS()"><span style="font-size:20px">🆘</span></div>
+  <div class="bottom-nav">
+    <div class="nav-item" onclick="goTo('screen-home')"><div class="nav-icon">🏠</div><div class="nav-label">Inicio</div></div>
+    <div class="nav-item" onclick="goTo('screen-reminders')"><div class="nav-icon">🔔</div><div class="nav-label">Recordar</div></div>
+    <div class="nav-item" onclick="goTo('screen-inventory')"><div class="nav-icon">📦</div><div class="nav-label">Inventario</div></div>
+    <div class="nav-item active" onclick="goTo('screen-family')"><div class="nav-icon">👨‍👩‍👧</div><div class="nav-label">Familia</div></div>
+  </div>
+</div>
+
+<!-- SOS -->
+<div id="screen-sos" class="screen">
+  <div class="sos-header">
+    <div style="font-size:12px;font-weight:800;color:rgba(255,255,255,.7);margin-bottom:6px;">PANTALLA DE EMERGENCIA</div>
+    <div style="font-size:38px;">🆘</div>
+    <h1 style="font-size:24px;font-weight:900;color:white;margin-top:5px;">AUXILIO</h1>
+    <p style="font-size:13px;color:rgba(255,255,255,.8);font-weight:600;">Presioná el botón o decí "Auxilio"</p>
+  </div>
+  <div class="scroll-content" style="padding-top:16px;">
+    <div id="mic-box" style="background:white;border-radius:var(--radius);padding:13px 15px;margin-bottom:14px;box-shadow:var(--shadow);border:2px solid var(--warm);">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-size:24px;">🎤</span>
+        <div style="flex:1;"><div id="mic-title" style="font-size:14px;font-weight:800;color:var(--text);">Escuchando tu voz...</div>
+        <div id="mic-sub" style="font-size:11px;font-weight:600;color:var(--text-soft);">Decí "Auxilio", "Ayuda" o "SOS"</div></div>
+        <div id="mic-dot" style="width:11px;height:11px;border-radius:50%;background:var(--green);animation:blink 1s infinite;flex-shrink:0;"></div>
+      </div>
+      <!-- Botón para activar micrófono en celular -->
+      <button id="mic-activate-btn" onclick="activateMicManually()" style="display:none;margin-top:10px;width:100%;padding:11px;background:var(--orange);border:none;border-radius:var(--radius-sm);font-family:'Nunito',sans-serif;font-size:14px;font-weight:800;color:white;cursor:pointer;align-items:center;justify-content:center;gap:6px;">
+        🎤 Activar micrófono
+      </button>
+    </div>
+    <div id="sos-btn-area" style="text-align:center;margin-bottom:18px;">
+      <div class="sos-big-btn" onclick="startCountdown()">
+        <span style="font-size:42px;">🆘</span>
+        <span style="font-size:17px;font-weight:900;color:white;margin-top:3px;">AUXILIO</span>
+      </div>
+      <p style="margin-top:12px;font-size:13px;font-weight:700;color:var(--text-soft);">Tocá para llamar</p>
+    </div>
+    <div id="countdown-area" style="display:none;text-align:center;margin-bottom:18px;">
+      <div style="font-size:15px;font-weight:800;color:var(--red);margin-bottom:4px;">⚠️ Llamando en...</div>
+      <div id="cd-who" style="font-size:13px;font-weight:700;color:var(--text-soft);margin-bottom:8px;"></div>
+      <div id="cd-num" style="font-size:72px;font-weight:900;color:var(--red);line-height:1;">5</div>
+      <button onclick="cancelCountdown()" style="margin-top:12px;background:white;border:3px solid var(--red);color:var(--red);font-family:'Nunito',sans-serif;font-size:16px;font-weight:900;padding:12px 32px;border-radius:50px;cursor:pointer;">✕ CANCELAR</button>
+    </div>
+    <div id="calling-area" style="display:none;margin-bottom:14px;">
+      <div class="call-box">
+        <div style="font-size:38px;margin-bottom:5px;">📞</div>
+        <div id="call-name" style="font-size:19px;font-weight:900;margin-bottom:3px;">Llamando...</div>
+        <div id="call-num" style="font-size:13px;opacity:.85;font-weight:600;margin-bottom:12px;"></div>
+        <div id="call-timer" style="font-size:24px;font-weight:900;">0:00</div>
+        <button onclick="endCall()" style="margin-top:14px;background:var(--red);border:none;color:white;font-family:'Nunito',sans-serif;font-size:16px;font-weight:900;padding:12px;border-radius:50px;cursor:pointer;width:100%;">📵 Colgar</button>
+      </div>
+    </div>
+    <div style="font-size:15px;font-weight:800;color:var(--text);margin-bottom:10px;">👨‍👩‍👧 Llamar directamente:</div>
+    <div id="sos-contacts"></div>
+    <div onclick="callContact('Emergencias 911','911')" style="background:white;border-radius:var(--radius-sm);padding:13px;margin-bottom:9px;box-shadow:var(--shadow);display:flex;align-items:center;gap:11px;cursor:pointer;border:2px solid var(--red);">
+      <div style="width:44px;height:44px;background:#FAEAEA;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;">🚨</div>
+      <div style="flex:1;"><div style="font-size:14px;font-weight:800;color:var(--red);">Emergencias — 911</div><div style="font-size:11px;font-weight:600;color:var(--text-soft);">Policía / Ambulancia</div></div>
+      <div style="width:42px;height:42px;background:var(--red);border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:19px;">📞</div>
+    </div>
+  </div>
+  <div style="position:absolute;bottom:0;left:0;right:0;padding:10px 18px 18px;background:white;border-top:1.5px solid var(--warm);">
+    <button class="btn-big btn-gray" onclick="closeSOS()" style="margin-bottom:0;">← Volver al inicio</button>
+  </div>
+</div>
+
+<!-- ==================== MODALS ==================== -->
+
+<!-- REMINDER MODAL -->
+<div id="modal-reminder" class="modal-overlay" onclick="overlayClose(event,'modal-reminder')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <h2 id="mr-title">🔔 Nuevo Recordatorio</h2>
+    <div class="form-group"><label class="form-label">¿Qué querés recordar?</label><input id="r-name" type="text" class="form-input" placeholder="Ej: Pagar la luz"></div>
+    <div class="form-group"><label class="form-label">Categoría</label>
+      <select id="r-cat" class="form-input">
+        <option value="💡">💡 Servicios</option><option value="💊">💊 Medicamentos</option>
+        <option value="🔧">🔧 Mantenimiento</option><option value="🏥">🏥 Salud</option>
+        <option value="🚗">🚗 Vehículo</option><option value="🏠">🏠 Hogar</option><option value="📋">📋 Otro</option>
+      </select>
+    </div>
+    <div class="form-group"><label class="form-label">Fecha / Vencimiento</label><input id="r-date" type="date" class="form-input"></div>
+    <div class="form-group"><label class="form-label">Nota adicional</label><input id="r-note" type="text" class="form-input" placeholder="Ej: Monto $4.850"></div>
+    <button class="btn-big btn-orange" onclick="saveReminder()">✓ Guardar</button>
+    <button class="btn-big btn-gray" onclick="closeModal('modal-reminder')">Cancelar</button>
+  </div>
+</div>
+
+<!-- INVENTORY MODAL -->
+<div id="modal-inventory" class="modal-overlay" onclick="overlayClose(event,'modal-inventory')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <h2 id="mi-title">📦 Nuevo Ítem</h2>
+    <div class="form-group"><label class="form-label">Nombre del producto</label><input id="i-name" type="text" class="form-input" placeholder="Ej: Enalapril 10mg"></div>
+    <div class="form-group"><label class="form-label">Categoría</label>
+      <select id="i-cat" class="form-input">
+        <option value="💊">💊 Medicamentos</option><option value="🍕">🍕 Freezer / Alimentos</option>
+        <option value="🔧">🔧 Electrodomésticos</option><option value="🧹">🧹 Limpieza</option>
+        <option value="🛒">🛒 Compras pendientes</option><option value="📋">📋 Otro</option>
+      </select>
+    </div>
+    <div class="form-group"><label class="form-label">Estado</label>
+      <select id="i-status" class="form-input">
+        <option value="ok">✓ OK — Todo bien</option>
+        <option value="warn">⚠ Poco stock o pronto a vencer</option>
+        <option value="bad">✗ Vencido o urgente</option>
+      </select>
+    </div>
+    <div class="form-group"><label class="form-label">Nota (vencimiento, cantidad...)</label><input id="i-note" type="text" class="form-input" placeholder="Ej: Vence ago 2025 · 6 comprimidos"></div>
+    <button class="btn-big btn-orange" onclick="saveInventory()">✓ Guardar</button>
+    <button class="btn-big btn-gray" onclick="closeModal('modal-inventory')">Cancelar</button>
+  </div>
+</div>
+
+<!-- PROVIDER MODAL -->
+<div id="modal-provider" class="modal-overlay" onclick="overlayClose(event,'modal-provider')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <h2 id="mp-title">📞 Nuevo Proveedor</h2>
+    <div class="form-group"><label class="form-label">Nombre</label><input id="p-name" type="text" class="form-input" placeholder="Ej: Juan García"></div>
+    <div class="form-group"><label class="form-label">Oficio / Servicio</label>
+      <select id="p-cat" class="form-input">
+        <option value="🔧">🔧 Plomero</option><option value="⚡">⚡ Electricista</option>
+        <option value="🔥">🔥 Gasista</option><option value="🪟">🪟 Carpintero</option>
+        <option value="🧹">🧹 Limpieza</option><option value="👨‍⚕️">👨‍⚕️ Médico</option>
+        <option value="💊">💊 Farmacia</option><option value="📦">📦 Delivery</option><option value="📋">📋 Otro</option>
+      </select>
+    </div>
+    <div class="form-group"><label class="form-label">Teléfono</label><input id="p-phone" type="tel" class="form-input" placeholder="Ej: 351-555-0101"></div>
+    <div class="form-group"><label class="form-label">Nota (última visita, dirección...)</label><input id="p-note" type="text" class="form-input" placeholder="Ej: Última visita: enero 2024"></div>
+    <button class="btn-big btn-orange" onclick="saveProvider()">✓ Guardar</button>
+    <button class="btn-big btn-gray" onclick="closeModal('modal-provider')">Cancelar</button>
+  </div>
+</div>
+
+<!-- FAMILY MODAL -->
+<div id="modal-family" class="modal-overlay" onclick="overlayClose(event,'modal-family')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <h2 id="mf-title">👨‍👩‍👧 Nuevo Familiar</h2>
+    <div class="form-group"><label class="form-label">Nombre completo</label><input id="f-name" type="text" class="form-input" placeholder="Ej: Carlos García"></div>
+    <div class="form-group"><label class="form-label">Relación</label>
+      <select id="f-role" class="form-input">
+        <option value="👨 Hijo">👨 Hijo</option><option value="👩 Hija">👩 Hija</option>
+        <option value="👦 Nieto">👦 Nieto</option><option value="👧 Nieta">👧 Nieta</option>
+        <option value="👴 Esposo">👴 Esposo</option><option value="👵 Esposa">👵 Esposa</option>
+        <option value="🧑 Hermano/a">🧑 Hermano/a</option>
+        <option value="🧑‍⚕️ Cuidador/a">🧑‍⚕️ Cuidador/a</option><option value="👤 Otro">👤 Otro</option>
+      </select>
+    </div>
+    <div class="form-group"><label class="form-label">Teléfono</label><input id="f-phone" type="tel" class="form-input" placeholder="Ej: 351-555-0101"></div>
+    <div class="form-group"><label class="form-label">¿Qué puede hacer?</label>
+      <select id="f-perm" class="form-input">
+        <option value="👁 Solo ver">👁 Solo ver recordatorios</option>
+        <option value="✏️ Ver y agregar">✏️ Ver y agregar recordatorios</option>
+        <option value="⚙️ Control total">⚙️ Control total</option>
+      </select>
+    </div>
+    <button class="btn-big btn-orange" onclick="saveFamily()">✓ Guardar</button>
+    <button class="btn-big btn-gray" onclick="closeModal('modal-family')">Cancelar</button>
+  </div>
+</div>
+
+<!-- DELETE CONFIRM -->
+<div id="modal-delete" class="modal-overlay" onclick="overlayClose(event,'modal-delete')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <h2>🗑️ ¿Eliminar?</h2>
+    <p style="text-align:center;font-size:15px;font-weight:700;color:var(--text-soft);margin-bottom:20px;">¿Seguro que querés eliminar <strong id="del-name" style="color:var(--text);"></strong>?</p>
+    <button class="btn-big btn-red" onclick="confirmDelete()">🗑️ Sí, eliminar</button>
+    <button class="btn-big btn-gray" onclick="closeModal('modal-delete')">Cancelar</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+</div>
+
+<script>
+// ── DATA + PERSISTENCIA ──────────────────────────────────────
+const DEFAULT = {
+  reminders:[
+    {id:1,name:'Pagar la luz',cat:'💡',date:'2026-02-22',note:'Vence mañana — $4.850'},
+    {id:2,name:'Comprar Enalapril',cat:'💊',date:'2026-02-23',note:'Stock para 2 días'},
+    {id:3,name:'Turno Dr. Ramírez',cat:'🏥',date:'2026-02-24',note:'Martes 10am'},
+    {id:4,name:'Service calefacción',cat:'🔧',date:'2026-03-05',note:'Revisión anual'},
+    {id:5,name:'VTV del auto',cat:'🚗',date:'2026-03-10',note:'Vence en marzo'},
+  ],
+  inventory:[
+    {id:1,name:'Enalapril 10mg',cat:'💊',status:'warn',note:'Quedan 6 comprimidos · Vence ago 2025'},
+    {id:2,name:'Aspirina 100mg',cat:'💊',status:'ok',note:'Stock completo · Vence dic 2025'},
+    {id:3,name:'Metformina',cat:'💊',status:'bad',note:'Vence en 3 días'},
+    {id:4,name:'Carne picada',cat:'🍕',status:'warn',note:'Guardada el 18 feb · Usar antes del 25'},
+    {id:5,name:'Merluza',cat:'🍕',status:'ok',note:'Guardada el 10 feb'},
+    {id:6,name:'Heladera Samsung',cat:'🔧',status:'warn',note:'Último service: marzo 2023'},
+    {id:7,name:'Lavarropas Drean',cat:'🔧',status:'ok',note:'Último service: enero 2024'},
+  ],
+  providers:[
+    {id:1,name:'Juan García',cat:'🔧',phone:'3515550101',note:'Plomero · Últ. visita: ene 2024'},
+    {id:2,name:'Luis Pérez',cat:'🔥',phone:'3515550202',note:'Gasista · Revisó caldera: mar 2023'},
+    {id:3,name:'Roberto Díaz',cat:'⚡',phone:'3515550303',note:'Electricista · Últ. visita: jul 2023'},
+    {id:4,name:'Dr. Ramírez',cat:'👨‍⚕️',phone:'3515550404',note:'Clínico · Turno: martes 10am'},
+    {id:5,name:'Farmacia del Sol',cat:'💊',phone:'3515550505',note:'A 3 cuadras'},
+  ],
+  family:[
+    {id:1,name:'Carlos García',role:'👨 Hijo',phone:'3515550101',perm:'✏️ Ver y agregar'},
+    {id:2,name:'Laura García',role:'👩 Hija',phone:'3515550202',perm:'⚙️ Control total'},
+    {id:3,name:'Sofía García',role:'👧 Nieta',phone:'',perm:'👁 Solo ver'},
+  ],
+  nid:{r:10,i:10,p:10,f:10}
+};
+
+function loadData() {
+  try {
+    const saved = localStorage.getItem('micasaaldia_v2');
+    if (saved) return JSON.parse(saved);
+  } catch(e) {}
+  return JSON.parse(JSON.stringify(DEFAULT));
+}
+
+function saveData() {
+  try {
+    localStorage.setItem('micasaaldia_v2', JSON.stringify(D));
+  } catch(e) {
+    showToast('⚠️ No se pudo guardar localmente');
+  }
+}
+
+const D = loadData();
+const NID = D.nid;
+
+
+// ── NAV ─────────────────────────────────────────────────────
+function goTo(id) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const sc = document.getElementById(id).querySelector('.scroll-content');
+  if(sc) sc.scrollTop=0;
+  const renders = {'screen-home':renderHome,'screen-reminders':renderReminders,'screen-inventory':renderInventory,'screen-providers':renderProviders,'screen-family':renderFamily};
+  if(renders[id]) renders[id]();
+}
+
+// ── TOAST ────────────────────────────────────────────────────
+let toastTm;
+function showToast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(toastTm);toastTm=setTimeout(()=>t.classList.remove('show'),2600);}
+
+// ── MODAL ────────────────────────────────────────────────────
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+function overlayClose(e,id){if(e.target===document.getElementById(id))closeModal(id);}
+
+// ── DELETE ───────────────────────────────────────────────────
+let delFn=null;
+function askDelete(label,fn){document.getElementById('del-name').textContent='"'+label+'"';delFn=fn;openModal('modal-delete');}
+function confirmDelete(){if(delFn){delFn();delFn=null;}closeModal('modal-delete');}
+
+// ── HELPERS ──────────────────────────────────────────────────
+function daysUntil(s){if(!s)return 999;const d=new Date(s+'T00:00:00'),n=new Date();n.setHours(0,0,0,0);d.setHours(0,0,0,0);return Math.round((d-n)/864e5);}
+function fmtDate(s){if(!s)return '';const d=new Date(s+'T00:00:00');return d.toLocaleDateString('es-AR',{day:'numeric',month:'long'});}
+function empty(icon,text,sub='Tocá el botón para agregar'){return`<div class="empty-state"><div class="ei">${icon}</div><p>${text}</p><small>${sub}</small></div>`;}
+
+// ── HOME ─────────────────────────────────────────────────────
+function renderHome(){
+  const now=new Date();
+  document.getElementById('home-time').textContent=now.getHours()+':'+String(now.getMinutes()).padStart(2,'0');
+  const days=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  const months=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  document.getElementById('home-date').textContent=days[now.getDay()]+', '+now.getDate()+' de '+months[now.getMonth()];
+  document.getElementById('cnt-r').textContent=D.reminders.length+' activos';
+  document.getElementById('cnt-i').textContent=D.inventory.length+' ítems';
+  document.getElementById('cnt-p').textContent=D.providers.length+' contactos';
+  document.getElementById('cnt-f').textContent=D.family.length+' conectados';
+  const urg=D.reminders.filter(r=>daysUntil(r.date)<=3).length;
+  document.getElementById('home-urgent').textContent=urg>0?urg+' cosa'+(urg>1?'s':'')+' te esperan hoy':'Todo tranquilo hoy 🙂';
+  const sorted=[...D.reminders].sort((a,b)=>new Date(a.date)-new Date(b.date)).slice(0,3);
+  const el=document.getElementById('home-preview');
+  if(!sorted.length){el.innerHTML=empty('🔔','Sin recordatorios aún','Andá a Recordatorios para agregar');return;}
+  el.innerHTML='<div class="card">'+sorted.map(r=>{
+    const d=daysUntil(r.date),c=d<=1?'var(--red)':d<=3?'var(--orange)':'var(--green)';
+    return`<div style="display:flex;align-items:center;gap:11px;padding:11px 0;border-bottom:1.5px solid var(--warm);">
+      <div class="item-icon" style="background:#F5EBE0;">${r.cat}</div>
+      <div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:800;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${r.name}</div>
+      <div style="font-size:11px;color:var(--text-soft);font-weight:600;">${r.note||fmtDate(r.date)}</div></div>
+      <div style="text-align:center;min-width:34px;"><div style="font-size:18px;font-weight:900;color:${c};line-height:1;">${d<0?'!':d}</div>
+      <div style="font-size:10px;color:var(--text-soft);font-weight:700;">${d===1?'día':'días'}</div></div></div>`;
+  }).join('')+'</div>';
+}
+
+// ── REMINDERS CRUD ───────────────────────────────────────────
+let editR=null;
+function openReminderModal(id=null){
+  editR=id;
+  const r=id?D.reminders.find(x=>x.id===id):null;
+  document.getElementById('mr-title').textContent=id?'✏️ Editar Recordatorio':'🔔 Nuevo Recordatorio';
+  document.getElementById('r-name').value=r?r.name:'';
+  document.getElementById('r-cat').value=r?r.cat:'💡';
+  document.getElementById('r-date').value=r?r.date:'';
+  document.getElementById('r-note').value=r?r.note:'';
+  openModal('modal-reminder');
+}
+function saveReminder(){
+  const name=document.getElementById('r-name').value.trim();
+  if(!name){showToast('⚠️ Escribí el nombre');return;}
+  const obj={name,cat:document.getElementById('r-cat').value,date:document.getElementById('r-date').value,note:document.getElementById('r-note').value.trim()};
+  if(editR){const i=D.reminders.findIndex(x=>x.id===editR);D.reminders[i]={...D.reminders[i],...obj};showToast('✓ Recordatorio actualizado');}
+  else{D.reminders.push({id:NID.r++,...obj});showToast('✓ Recordatorio guardado');}
+  saveData();closeModal('modal-reminder');renderReminders();
+}
+function deleteReminder(id){const r=D.reminders.find(x=>x.id===id);askDelete(r.name,()=>{D.reminders=D.reminders.filter(x=>x.id!==id);saveData();renderReminders();showToast('🗑️ Recordatorio eliminado');});}
+
+function renderReminders(){
+  const el=document.getElementById('reminders-list');
+  if(!D.reminders.length){el.innerHTML=empty('🔔','Sin recordatorios','Tocá el botón de arriba para agregar');return;}
+  const s=[...D.reminders].sort((a,b)=>new Date(a.date)-new Date(b.date));
+  const urg=s.filter(r=>daysUntil(r.date)<=1),wk=s.filter(r=>daysUntil(r.date)>1&&daysUntil(r.date)<=7),later=s.filter(r=>daysUntil(r.date)>7);
+  let h='';
+  if(urg.length)h+='<div class="section-title">🚨 Urgentes</div>'+urg.map(rCard).join('');
+  if(wk.length)h+='<div class="section-title">📅 Esta semana</div>'+wk.map(rCard).join('');
+  if(later.length)h+='<div class="section-title">🗓 Próximos</div>'+later.map(rCard).join('');
+  el.innerHTML=h;
+}
+function rCard(r){
+  const d=daysUntil(r.date),c=d<=1?'var(--red)':d<=3?'var(--orange)':'var(--green)',bg=d<=1?'#FAEAEA':d<=3?'#FEF5E7':'#EAF5EF';
+  return`<div class="list-item">
+    <div class="item-icon" style="background:${bg};">${r.cat}</div>
+    <div class="item-info"><h3>${r.name}</h3><p>${r.note||fmtDate(r.date)}</p></div>
+    <div style="text-align:center;min-width:34px;margin-right:5px;"><div style="font-size:17px;font-weight:900;color:${c};line-height:1;">${d<0?'!':d}</div><div style="font-size:10px;color:var(--text-soft);font-weight:700;">${d===1?'día':'días'}</div></div>
+    <div class="item-actions">
+      <button class="action-btn edit-btn" onclick="openReminderModal(${r.id})">✏️</button>
+      <button class="action-btn del-btn" onclick="deleteReminder(${r.id})">🗑️</button>
+    </div></div>`;
+}
+
+// ── INVENTORY CRUD ───────────────────────────────────────────
+let editI=null;
+function openInventoryModal(id=null){
+  editI=id;
+  const r=id?D.inventory.find(x=>x.id===id):null;
+  document.getElementById('mi-title').textContent=id?'✏️ Editar Ítem':'📦 Nuevo Ítem';
+  document.getElementById('i-name').value=r?r.name:'';
+  document.getElementById('i-cat').value=r?r.cat:'💊';
+  document.getElementById('i-status').value=r?r.status:'ok';
+  document.getElementById('i-note').value=r?r.note:'';
+  openModal('modal-inventory');
+}
+function saveInventory(){
+  const name=document.getElementById('i-name').value.trim();
+  if(!name){showToast('⚠️ Escribí el nombre');return;}
+  const obj={name,cat:document.getElementById('i-cat').value,status:document.getElementById('i-status').value,note:document.getElementById('i-note').value.trim()};
+  if(editI){const i=D.inventory.findIndex(x=>x.id===editI);D.inventory[i]={...D.inventory[i],...obj};showToast('✓ Ítem actualizado');}
+  else{D.inventory.push({id:NID.i++,...obj});showToast('✓ Ítem guardado');}
+  saveData();closeModal('modal-inventory');renderInventory();
+}
+function deleteInventory(id){const r=D.inventory.find(x=>x.id===id);askDelete(r.name,()=>{D.inventory=D.inventory.filter(x=>x.id!==id);saveData();renderInventory();showToast('🗑️ Ítem eliminado');});}
+
+function renderInventory(){
+  const el=document.getElementById('inventory-list');
+  if(!D.inventory.length){el.innerHTML=empty('📦','Sin ítems en inventario');return;}
+  const cats={'💊':'Medicamentos','🍕':'Freezer / Alimentos','🔧':'Electrodomésticos','🧹':'Limpieza','🛒':'Compras pendientes','📋':'Otros'};
+  const groups={};
+  D.inventory.forEach(i=>{if(!groups[i.cat])groups[i.cat]=[];groups[i.cat].push(i);});
+  let h='';
+  for(const cat in groups){h+=`<div class="section-title">${cat} ${cats[cat]||''}</div>`+groups[cat].map(iCard).join('');}
+  el.innerHTML=h;
+}
+function iCard(r){
+  const lbl={ok:'✓ OK',warn:'⚠ Poco',bad:'✗ Urgente'},cls={ok:'ok',warn:'warn',bad:'bad'};
+  return`<div class="list-item">
+    <div class="item-icon" style="background:#F5EBE0;">${r.cat}</div>
+    <div class="item-info"><h3>${r.name}</h3><p>${r.note||''}</p></div>
+    <span class="status-pill ${cls[r.status]}" style="margin-right:5px;">${lbl[r.status]}</span>
+    <div class="item-actions">
+      <button class="action-btn edit-btn" onclick="openInventoryModal(${r.id})">✏️</button>
+      <button class="action-btn del-btn" onclick="deleteInventory(${r.id})">🗑️</button>
+    </div></div>`;
+}
+
+// ── PROVIDERS CRUD ───────────────────────────────────────────
+let editP=null;
+function openProviderModal(id=null){
+  editP=id;
+  const r=id?D.providers.find(x=>x.id===id):null;
+  document.getElementById('mp-title').textContent=id?'✏️ Editar Proveedor':'📞 Nuevo Proveedor';
+  document.getElementById('p-name').value=r?r.name:'';
+  document.getElementById('p-cat').value=r?r.cat:'🔧';
+  document.getElementById('p-phone').value=r?r.phone:'';
+  document.getElementById('p-note').value=r?r.note:'';
+  openModal('modal-provider');
+}
+function saveProvider(){
+  const name=document.getElementById('p-name').value.trim();
+  if(!name){showToast('⚠️ Escribí el nombre');return;}
+  const obj={name,cat:document.getElementById('p-cat').value,phone:document.getElementById('p-phone').value.trim(),note:document.getElementById('p-note').value.trim()};
+  if(editP){const i=D.providers.findIndex(x=>x.id===editP);D.providers[i]={...D.providers[i],...obj};showToast('✓ Proveedor actualizado');}
+  else{D.providers.push({id:NID.p++,...obj});showToast('✓ Proveedor guardado');}
+  saveData();closeModal('modal-provider');renderProviders();
+}
+function deleteProvider(id){const r=D.providers.find(x=>x.id===id);askDelete(r.name,()=>{D.providers=D.providers.filter(x=>x.id!==id);saveData();renderProviders();showToast('🗑️ Proveedor eliminado');});}
+
+function renderProviders(){
+  const el=document.getElementById('providers-list');
+  if(!D.providers.length){el.innerHTML=empty('📞','Sin proveedores');return;}
+  el.innerHTML=D.providers.map(pCard).join('');
+}
+function pCard(r){
+  return`<div class="list-item">
+    <div class="item-icon" style="background:#EAF5EF;">${r.cat}</div>
+    <div class="item-info"><h3>${r.name}</h3><p>${r.note||''}</p>${r.phone?`<p style="color:var(--blue);font-weight:700;font-size:11px;">📞 ${r.phone}</p>`:''}</div>
+    <div class="item-actions">
+      ${r.phone?`<a href="tel:${r.phone}" class="action-btn call-btn-sm" style="text-decoration:none;display:flex;align-items:center;justify-content:center;">📞</a>`:''}
+      <button class="action-btn edit-btn" onclick="openProviderModal(${r.id})">✏️</button>
+      <button class="action-btn del-btn" onclick="deleteProvider(${r.id})">🗑️</button>
+    </div></div>`;
+}
+
+// ── FAMILY CRUD ──────────────────────────────────────────────
+let editF=null;
+function openFamilyModal(id=null){
+  editF=id;
+  const r=id?D.family.find(x=>x.id===id):null;
+  document.getElementById('mf-title').textContent=id?'✏️ Editar Familiar':'👨‍👩‍👧 Nuevo Familiar';
+  document.getElementById('f-name').value=r?r.name:'';
+  document.getElementById('f-role').value=r?r.role:'👨 Hijo';
+  document.getElementById('f-phone').value=r?r.phone:'';
+  document.getElementById('f-perm').value=r?r.perm:'👁 Solo ver';
+  openModal('modal-family');
+}
+function saveFamily(){
+  const name=document.getElementById('f-name').value.trim();
+  if(!name){showToast('⚠️ Escribí el nombre');return;}
+  const obj={name,role:document.getElementById('f-role').value,phone:document.getElementById('f-phone').value.trim(),perm:document.getElementById('f-perm').value};
+  if(editF){const i=D.family.findIndex(x=>x.id===editF);D.family[i]={...D.family[i],...obj};showToast('✓ Familiar actualizado');}
+  else{D.family.push({id:NID.f++,...obj});showToast('✓ Familiar agregado');}
+  saveData();closeModal('modal-family');renderFamily();
+}
+function deleteFamily(id){const r=D.family.find(x=>x.id===id);askDelete(r.name,()=>{D.family=D.family.filter(x=>x.id!==id);saveData();renderFamily();showToast('🗑️ Familiar eliminado');});}
+
+function renderFamily(){
+  const el=document.getElementById('family-list');
+  if(!D.family.length){el.innerHTML=empty('👨‍👩‍👧','Sin familiares agregados');return;}
+  el.innerHTML=D.family.map(f=>{
+    const emoji=f.role.split(' ')[0],rel=f.role.substring(f.role.indexOf(' ')+1);
+    return`<div class="list-item">
+      <div class="item-icon" style="background:#EEF4FB;font-size:22px;">${emoji}</div>
+      <div class="item-info"><h3>${f.name}</h3><p>${rel}${f.phone?' · '+f.phone:''}</p><p style="font-size:11px;">${f.perm}</p></div>
+      <div class="item-actions">
+        ${f.phone?`<a href="tel:${f.phone}" class="action-btn call-btn-sm" style="text-decoration:none;display:flex;align-items:center;justify-content:center;">📞</a>`:''}
+        <button class="action-btn edit-btn" onclick="openFamilyModal(${f.id})">✏️</button>
+        <button class="action-btn del-btn" onclick="deleteFamily(${f.id})">🗑️</button>
+      </div></div>`;
+  }).join('');
+  renderSOSContacts();
+}
+
+function renderSOSContacts(){
+  const el=document.getElementById('sos-contacts');if(!el)return;
+  const withPhone=D.family.filter(f=>f.phone);
+  if(!withPhone.length){
+    el.innerHTML='<p style="text-align:center;color:var(--text-soft);font-size:13px;font-weight:700;padding:10px 0 0;">Agregá un familiar con teléfono para verlo acá</p>';
+    return;
+  }
+  el.innerHTML=withPhone.map(f=>{
+    const emoji=f.role.split(' ')[0],rel=f.role.substring(f.role.indexOf(' ')+1);
+    return`<a href="tel:${f.phone}" style="text-decoration:none;background:white;border-radius:var(--radius-sm);padding:13px;margin-bottom:9px;box-shadow:var(--shadow);display:flex;align-items:center;gap:11px;">
+      <div style="width:44px;height:44px;background:#EEF4FB;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;">${emoji}</div>
+      <div style="flex:1;"><div style="font-size:14px;font-weight:800;color:var(--text);">${f.name} — ${rel}</div><div style="font-size:11px;font-weight:600;color:var(--text-soft);">${f.phone}</div></div>
+      <div style="width:42px;height:42px;background:var(--green);border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:19px;">📞</div></a>`;
+  }).join('');
+}
+
+// ── SOS ──────────────────────────────────────────────────────
+function openSOS(){
+  cancelCountdown();endCall();
+  document.getElementById('mic-title').textContent='Activá el micrófono';
+  document.getElementById('mic-sub').textContent='Tocá el botón para escuchar tu voz';
+  document.getElementById('mic-dot').style.background='var(--yellow)';
+  document.getElementById('mic-dot').style.animation='blink 1s infinite';
+  document.getElementById('mic-activate-btn').style.display='flex';
+  goTo('screen-sos');
+  renderSOSContacts();
+}
+function closeSOS(){stopVoiceListening();cancelCountdown();endCall();goTo('screen-home');}
+
+function getPrimaryContact(){
+  const w=D.family.filter(f=>f.phone);if(!w.length)return null;
+  return w.find(f=>f.perm.includes('Control'))||w.find(f=>f.perm.includes('agregar'))||w[0];
+}
+
+let cdInt=null;
+function startCountdown(){
+  const c=getPrimaryContact();
+  if(!c){showToast('⚠️ Agregá un familiar con teléfono primero');return;}
+  document.getElementById('sos-btn-area').style.display='none';
+  document.getElementById('countdown-area').style.display='block';
+  document.getElementById('cd-who').textContent='Se llamará a '+c.name.split(' ')[0]+' ('+c.role.substring(c.role.indexOf(' ')+1)+')';
+  let n=5;document.getElementById('cd-num').textContent=n;
+  cdInt=setInterval(()=>{
+    n--;document.getElementById('cd-num').textContent=n;
+    if(n<=0){clearInterval(cdInt);stopVoiceListening();window.location.href='tel:'+c.phone;}
+  },1000);
+}
+function cancelCountdown(){
+  if(cdInt){clearInterval(cdInt);cdInt=null;}
+  document.getElementById('countdown-area').style.display='none';
+  document.getElementById('sos-btn-area').style.display='block';
+  document.getElementById('cd-num').textContent='5';
+}
+function endCall(){
+  document.getElementById('calling-area').style.display='none';
+  document.getElementById('sos-btn-area').style.display='block';
+}
+
+// ── MICRÓFONO ────────────────────────────────────────────────
+let rec=null,listening=false;
+
+function activateMicManually(){
+  document.getElementById('mic-activate-btn').style.display='none';
+  document.getElementById('mic-title').textContent='Iniciando...';
+  _doListen();
+}
+
+function _doListen(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){
+    document.getElementById('mic-title').textContent='Voz no disponible en este navegador';
+    document.getElementById('mic-sub').textContent='Usá Chrome para esta función';
+    document.getElementById('mic-dot').style.background='#ccc';
+    document.getElementById('mic-dot').style.animation='none';
+    return;
+  }
+  if(rec){try{rec.abort();}catch(e){}rec=null;}
+  try{
+    rec=new SR();
+    rec.lang='es-AR';
+    rec.continuous=false;
+    rec.interimResults=false;
+
+    rec.onstart=()=>{
+      listening=true;
+      document.getElementById('mic-title').textContent='🟢 Escuchando...';
+      document.getElementById('mic-sub').textContent='Decí "Auxilio", "Ayuda" o "SOS"';
+      document.getElementById('mic-dot').style.background='var(--green)';
+      document.getElementById('mic-dot').style.animation='blink 1s infinite';
+    };
+
+    rec.onresult=e=>{
+      const t=e.results[0][0].transcript.toLowerCase().trim();
+      document.getElementById('mic-sub').textContent='🎙 Escuché: "'+t+'"';
+      if(['auxilio','ayuda','sos','socorro','emergencia','ayudame','ayúdame'].some(w=>t.includes(w))){
+        listening=false;
+        document.getElementById('mic-title').textContent='🚨 ¡Detecté "'+t+'"!';
+        document.getElementById('mic-dot').style.background='var(--red)';
+        document.getElementById('mic-dot').style.animation='none';
+        setTimeout(startCountdown,500);
+      }
+    };
+
+    rec.onerror=e=>{
+      if(e.error==='not-allowed'){
+        listening=false;
+        document.getElementById('mic-title').textContent='❌ Permiso denegado';
+        document.getElementById('mic-sub').textContent='Permitir micrófono en el navegador y recargá';
+        document.getElementById('mic-dot').style.background='var(--red)';
+        document.getElementById('mic-dot').style.animation='none';
+      }
+      // no-speech y otros errores: reintentar
+    };
+
+    rec.onend=()=>{
+      if(listening) setTimeout(_doListen,400);
+    };
+
+    rec.start();
+  }catch(err){
+    document.getElementById('mic-title').textContent='Error: '+err.message;
+    document.getElementById('mic-dot').style.background='#ccc';
+  }
+}
+
+function startVoiceListening(){} // no usado, activación es manual
+function stopVoiceListening(){
+  listening=false;
+  if(rec){try{rec.abort();}catch(e){}rec=null;}
+}
+
+// ── INIT ─────────────────────────────────────────────────────
+renderHome();renderReminders();renderInventory();renderProviders();renderFamily();
+</script>
+</body>
+</html>
